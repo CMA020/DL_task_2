@@ -10,7 +10,7 @@ VGG_MEAN = [103.939, 116.779, 123.68]
 
 class Vgg19:
     def __init__(self, vgg19_npy_path=None):
-        self.data_dict = np.load(os.path.expanduser("/content/Dehaze-GAN/vgg19.npy"),allow_pickle=True ,encoding='latin1').item()
+        self.data_dict = np.load(os.path.expanduser(os.path.join(os.getcwd(),"vgg19.npy")),allow_pickle=True ,encoding='latin1').item()
 
     def feature_map(self, rgb):
         """
