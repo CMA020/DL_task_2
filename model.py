@@ -251,7 +251,7 @@ class GAN():
             np.random.shuffle(data)
 
             total_image_count = int(len(data) * (1 - self.val_fraction))
-            total_image_count = total_image_count // 4  # Take only a 4th of the training data
+            total_image_count = total_image_count // 200  # Take only a 4th of the training data
             batches = total_image_count // self.batch_size
 
             train_data = data[: total_image_count]
@@ -533,15 +533,15 @@ class GAN():
         self.build_model()
         print('Model Loaded')
 
-        with tf.Session() as self.sess:
+        with tf.compat.v1.Session() as self.sess:
 
-            init_op = tf.global_variables_initializer()
+            init_op = tf.compat.v1.global_variables_initializer()
             self.sess.run(init_op)
 
             print('Loading Checkpoint')
             ckpt = tf.train.latest_checkpoint(self.ckpt_dir)
             self.saver.restore(self.sess, ckpt)
-            self.step = tf.train.get_or_create_global_step()
+            self.step = tf.compat.v1.train.get_or_create_global_step()
             print('Checkpoint Loaded')
 
             for i, img_file in enumerate(input_list, 1):

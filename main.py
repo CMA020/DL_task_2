@@ -1,9 +1,40 @@
 import os
 import argparse
 from model import GAN
+TEST_DATASET_HAZY_PATH =  os.path.expanduser("~/DL_task2/sample_in")
+TEST_DATASET_OUTPUT_PATH = os.path.expanduser("~/DL_task2/out") 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 #os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+import re
+
+# Define the directory and file names
+directory = 'model/checkpoint'
+input_file = 'checkpoint2'
+output_file = 'checkpoint'
+
+# Get the absolute path of the directory
+abs_directory = os.path.abspath(directory)
+
+# Open the input file
+with open(os.path.join(directory, input_file), 'r') as f:
+    lines = f.readlines()
+
+# Process each line
+for i, line in enumerate(lines):
+    if 'model_checkpoint_path' in line:
+        # Extract the filename
+        filename = re.search(r'"(.*)"', line).group(1).split('/')[-1]
+        
+        # Construct the new model checkpoint path
+        new_model_path = os.path.join(abs_directory, filename)
+        
+        # Update the model checkpoint path
+        lines[i] = f'model_checkpoint_path: "{new_model_path}"\n'
+
+# Write the output file
+with open(os.path.join(directory, output_file), 'w') as f:
+    f.writelines(lines)
 
 parser = argparse.ArgumentParser()
 
@@ -22,7 +53,7 @@ parser.add_argument("--l1_wt", help="Weight of the L1 loss factor (Default = 100
 parser.add_argument("--vgg_wt", help="Weight of the VGG loss factor (Default = 10)",
                     type = float, default = 10)
 parser.add_argument("--restore", help = "Restore checkpoint for training (Default = False)",
-                    type = bool, default = False)
+                    type = bool, default = True)
 parser.add_argument("--batch_size", help="Set the batch size (Default = 1)",
                     type = int, default = 1)
 parser.add_argument("--decay", help="Batchnorm decay (Default = 0.99)",
@@ -36,9 +67,9 @@ parser.add_argument("--save_samples", help = "Generate image samples after valid
 parser.add_argument("--sample_image_dir", help = "Directory containing sample images (Used only if save_samples is True; Default = samples)",
                     default = 'samples')
 parser.add_argument("--A_dir", help = "Directory containing the input images for training, testing or inference (Default = A)",
-                    default = 'A')
+                    default = TEST_DATASET_HAZY_PATH)
 parser.add_argument("--B_dir", help = "Directory containing the target images for training or testing. In inference mode, this is used to store results (Default = B)",
-                    default = 'B')
+                    default =TEST_DATASET_OUTPUT_PATH)
 parser.add_argument("--custom_data", help = "Using your own data as input and target (Default = True)",
                     type = bool, default = True)
 parser.add_argument("--val_fraction", help = "Fraction of dataset to be split for validation (Default = 0.15)",
@@ -50,12 +81,13 @@ parser.add_argument("--val_frequency", help = "Number of batches to wait before 
 parser.add_argument("--logger_frequency", help = "Number of batches to wait before logging the next set of loss values (Default = 20)",
                    type = int, default = 20)
 parser.add_argument("--mode", help = "Select between train, test or inference modes",
-                    default = 'test', choices = ['train', 'test', 'inference'])
+                    default = 'inference', choices = ['train', 'test', 'inference'])
 
 if __name__ == '__main__':
 
     args = parser.parse_args()
     net = GAN(args)
+    
     if args.mode == 'train':
         net.train()
     if args.mode == 'test':
